@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>System Alert</title>
+<style>
+    * { box-sizing: border-box; }
+    body {
+        margin: 0; padding: 0; background: black; color: #00ff55;
+        font-family: monospace; overflow: hidden; text-align: center;
+        display: flex; justify-content: center; align-items: center; min-height: 100vh;
+        user-select: none; -webkit-user-select: none;
+    }
+    canvas { position: fixed; top: 0; left: 0; z-index: -1; }
+    .box {
+        width: 90%; max-width: 400px; padding: 25px;
+        border: 2px solid #00ff55; background: rgba(0, 0, 0, 0.9);
+        box-shadow: 0 0 25px #00ff55; border-radius: 8px;
+    }
+    h1 { margin-top: 0; text-shadow: 0 0 10px #00ff55; }
+    .warning { color: red; font-size: 18px; font-weight: bold; text-shadow: 0 0 5px rgba(255,0,0,0.5); }
+    #timer { color: red; font-size: 50px; margin: 15px 0; text-shadow: 0 0 10px red; }
+    input {
+        width: 100%; padding: 12px; background: black; color: #00ff55;
+        border: 2px solid #00ff55; text-align: center; font-size: 18px; font-family: monospace; outline: none;
+    }
+    button {
+        width: 100%; margin-top: 15px; padding: 12px 25px; background: #00ff55;
+        color: black; border: none; font-weight: bold; font-size: 16px; cursor: pointer;
+    }
+    #hasil { margin-top: 20px; font-size: 18px; }
+</style>
+</head>
+<body onclick="aktifkanKunci()">
+
+<canvas id="matrix"></canvas>
+
+<div class="box" id="konten-box">
+    <h1>⚠️ SYSTEM CRITICAL ⚠️</h1>
+    <p class="warning">HP ANDA SEDANG DI-ENKRIPSI</p>
+    <p class="warning">⚠️ DATA AKAN HILANG DALAM</p>
+    <h2 id="timer">20</h2>
+    <p>MASUKKAN KODE DEKRIPSI</p>
+    <input id="kode" placeholder="Masukkan kode..." autocomplete="off">
+    <button onclick="cek(event)">VERIFIKASI</button>
+    <div id="hasil"></div>
+    <p style="color:white; margin-top: 20px;">Kode? <b style="color:#00ff55">TANYA ADHA</b></p>
+</div>
+
+<script>
+// EFFEK MATRIX (Sama seperti sebelumnya)
+const canvas = document.getElementById("matrix");
+const ctx = canvas.getContext("2d");
+function resizeCanvas() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
+resizeCanvas(); window.addEventListener('resize', resizeCanvas);
+const angka = "01010110101001100101"; const ukuran = 18; let kolom = canvas.width / ukuran; let jatuh = [];
+for(let i = 0; i < kolom; i++){ jatuh[i] = 1; }
+function matrix(){
+    ctx.fillStyle = "rgba(0,0,0,0.08)"; ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = "#00ff55"; ctx.font = ukuran + "px monospace";
+    for(let i = 0; i < jatuh.length; i++){
+        let text = angka[Math.floor(Math.random() * angka.length)]; ctx.fillText(text, i * ukuran, jatuh[i] * ukuran);
+        if(jatuh[i] * ukuran > canvas.height && Math.random() > 0.975){ jatuh[i] = 0; }
+        jatuh[i]++;
+    }
+}
+let runMatrix = setInterval(matrix, 40);
+
+// TRICK 1: ANTI-BACK (Mengunci Tombol Kembali Browser)
+function kunciHistory() {
+    window.history.pushState(null, "", window.location.href);
+}
+window.onload = function () {
+    kunciHistory();
+    window.onpopstate = function () {
+        kunciHistory();
+        alert("⚠️ WARNING: Proses enkripsi sedang berjalan! Menutup halaman akan merusak sistem.");
+    };
+};
+
+// TRICK 2: LAYAR PENUH OTOMATIS SAAT DIKLIK
+function aktifkanKunci() {
+    let doc = document.documentElement;
+    if (doc.requestFullscreen) doc.requestFullscreen();
+    else if (doc.webkitRequestFullscreen) doc.webkitRequestFullscreen();
+    else if (doc.msRequestFullscreen) doc.msRequestFullscreen();
+}
+
+// COUNTDOWN
+let waktu = 20;
+let timer = document.getElementById("timer");
+let hitung = setInterval(() => {
+    waktu--;
+    timer.innerHTML = waktu;
+    if(waktu <= 0){
+        clearInterval(hitung);
+        prank("gagal");
+    }
+}, 1000);
+
+// CEK KODE
+function cek(e){
+    e.stopPropagation(); // Biar gak bentrok dengan fullscreen click
+    let kode = document.getElementById("kode").value;
+    if(kode === "ADHA123"){
+        clearInterval(hitung);
+        // Matikan proteksi jebakan browser
+        window.onpopstate = null;
+        prank("sukses");
+    } else {
+        document.getElementById("hasil").innerHTML = "<span style='color:red'>❌ KODE SALAH!</span>";
+        // TRICK 3: SPAM POP UP BIAR REPOT
+        alert("KODE SALAH! Sistem mendeteksi upaya pembobolan ilegal.");
+    }
+}
+
+function prank(status){
+    let pesan = status === "sukses" ? 
+        `<br><br><b>SELAMAT!</b><br>Dekripsi berhasil...` : 
+        `<br><br><b style="color:red;">WAKTU HABIS!</b><br>Proses selesai...`;
+
+    document.getElementById("konten-box").innerHTML = `
+        <div style="color:#00ff55; font-size: 20px; line-height: 1.6;">
+            😂😂😂 ${pesan} <br><br>
+            <b>ANDA KENA PRANK</b><br>OLEH<br>
+            <span style="text-shadow: 0 0 10px #00ff55;">😎 ADHA GANTENG 😎</span><br><br>
+            <span style="color:white; font-size: 16px;">DATA HP KAMU AMAN KOK 😆</span>
+        </div>
+    `;
+    
+    // Keluar dari mode fullscreen setelah prank selesai
+    if (document.exitFullscreen) document.exitFullscreen();
+}
+</script>
+
+</body>
+</html>
